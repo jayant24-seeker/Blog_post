@@ -1,0 +1,7 @@
+{% include "header.html" %}
+<main class="container py-5 text-center">
+  <p class="text-muted">Error {{ code }}</p>
+  <h1>{{ message }}</h1>
+  <a class="btn btn-primary mt-3" href="{{ url_for('get_all_posts') }}">Back to home</a>
+</main>
+{% include "footer.html" %}
