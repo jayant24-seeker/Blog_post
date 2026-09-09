@@ -244,6 +244,7 @@ def register():
             email=email,
             name=form.name.data.strip(),
             password=generate_password_hash(form.password.data),
+            role="admin" if email == os.getenv("ADMIN_EMAIL", "").strip().lower() else "user",
         )
         db.session.add(user)
         db.session.commit()
