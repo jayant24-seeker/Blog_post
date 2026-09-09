@@ -29,6 +29,12 @@ from forms import CommentForm, CreatePostForm, LoginForm, RegisterForm
 
 load_dotenv()
 
+database_url = os.getenv("DATABASE_URL", "sqlite:///posts.db")
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
+elif database_url.startswith("postgresql://"):
+    database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+
 
 class Base(DeclarativeBase):
     pass
@@ -37,9 +43,7 @@ class Base(DeclarativeBase):
 app = Flask(__name__)
 app.config.update(
     SECRET_KEY=os.getenv("SECRET_KEY", "dev-only-change-me"),
-    SQLALCHEMY_DATABASE_URI=os.getenv("DATABASE_URL", "sqlite:///posts.db").replace(
-        "postgres://", "postgresql+psycopg://", 1
-    ),
+    SQLALCHEMY_DATABASE_URI=database_url,
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     MAX_CONTENT_LENGTH=2 * 1024 * 1024,
     SESSION_COOKIE_HTTPONLY=True,
