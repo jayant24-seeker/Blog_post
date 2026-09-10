@@ -81,6 +81,44 @@ DEFAULT_POST_BODY = """
 <p>Other forms</p>
 <p>Other cacti have a quite different appearance. In tropical regions, some grow as forest climbers and <a href="https://en.wikipedia.org/wiki/Epiphyte">epiphytes</a>. Their stems are typically flattened and almost leaf-like in appearance, with few or even no spines. Climbing cacti can be very large; a specimen of <em><a href="https://en.wikipedia.org/wiki/Hylocereus">Hylocereus</a></em> was reported as 100 meters (330 ft) long from root to the most distant stem. Epiphytic cacti, such as species of <em><a href="https://en.wikipedia.org/wiki/Rhipsalis">Rhipsalis</a></em> or <em><a href="https://en.wikipedia.org/wiki/Schlumbergera">Schlumbergera</a></em>, often hang downwards, forming dense clumps where they grow in trees high above the ground.</p>
 """
+ADDITIONAL_DEFAULT_POSTS = [
+    {
+        "title": "What Makes Climate Change Measurable?",
+        "subtitle": "A practical way to read the evidence, not just the headlines.",
+        "date": "September 10, 2026",
+        "img_url": "https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=1600&q=80",
+        "body": """
+            <p>Climate is a long-term pattern, so the most useful questions are about trends measured across decades rather than any single hot day or storm. Temperature records, ocean heat, shrinking ice sheets, retreating glaciers, and rising sea levels are different measurements pointing in the same direction.</p>
+            <p>NASA explains that satellites, instruments, and natural records such as ice cores all help researchers compare today's changes with Earth's past. Looking at several independent lines of evidence is what makes the conclusion stronger than a single chart or headline.</p>
+            <p>For everyday readers, the useful habit is simple: check who collected the data, what time span is being compared, and whether the claim matches more than one kind of measurement.</p>
+            <p><strong>Source:</strong> <a href="https://science.nasa.gov/climate-change/evidence/" target="_blank" rel="noopener noreferrer">NASA: Evidence for Climate Change</a></p>
+        """,
+    },
+    {
+        "title": "Renewables Are Growing, But the Whole Energy System Matters",
+        "subtitle": "Why clean-electricity progress is only one part of the picture.",
+        "date": "September 10, 2026",
+        "img_url": "https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&w=1600&q=80",
+        "body": """
+            <p>Wind and solar are becoming increasingly visible in the world's electricity systems. That is important progress, but electricity is only part of total energy use. Transport, heating, and industry still shape the larger energy picture.</p>
+            <p>Our World in Data distinguishes between renewable electricity and renewables' share of primary energy. That distinction helps explain why fast growth in clean generation can coexist with a slower transition across the full economy.</p>
+            <p>The encouraging takeaway is not that the work is finished. It is that progress becomes clearer when we look at data by sector, region, and time instead of relying on one global number.</p>
+            <p><strong>Source:</strong> <a href="https://ourworldindata.org/renewable-energy" target="_blank" rel="noopener noreferrer">Our World in Data: Renewable Energy</a></p>
+        """,
+    },
+    {
+        "title": "AI in Science Works Best as a Thoughtful Partner",
+        "subtitle": "The opportunity is faster discovery, with humans still asking the important questions.",
+        "date": "September 10, 2026",
+        "img_url": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=1600&q=80",
+        "body": """
+            <p>Scientific work is often slowed by the sheer volume of papers, data, and possible experiments. AI tools can help researchers search patterns, summarize evidence, and propose promising directions more quickly.</p>
+            <p>That does not make scientific judgment optional. A useful system still needs researchers to choose worthwhile questions, inspect assumptions, test results, and explain what a result means in the real world.</p>
+            <p>The most interesting future is not one where software replaces curiosity. It is one where more time is available for careful experiments, good questions, and collaboration across disciplines.</p>
+            <p><strong>Source:</strong> <a href="https://blog.google/innovation-and-ai/technology/research/google-research-scientific-discovery/" target="_blank" rel="noopener noreferrer">Google Research: AI and Scientific Discovery</a></p>
+        """,
+    },
+]
 
 
 def clean_html(value: str) -> str:
@@ -94,17 +132,27 @@ def clean_html(value: str) -> str:
 
 
 def seed_default_post(author):
-    existing_post = db.session.scalar(
-        db.select(BlogPost.id).where(BlogPost.title == DEFAULT_POST_TITLE)
-    )
-    if existing_post is None:
+    posts_to_seed = [
+        {
+            "title": DEFAULT_POST_TITLE,
+            "subtitle": "A life well lived.",
+            "date": "August 01, 2023",
+            "body": DEFAULT_POST_BODY,
+            "img_url": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Cactus1web.jpg",
+        },
+        *ADDITIONAL_DEFAULT_POSTS,
+    ]
+    existing_titles = set(db.session.scalars(db.select(BlogPost.title)).all())
+    for post_data in posts_to_seed:
+        if post_data["title"] in existing_titles:
+            continue
         db.session.add(
             BlogPost(
-                title=DEFAULT_POST_TITLE,
-                subtitle="A life well lived.",
-                date="August 01, 2023",
-                body=clean_html(DEFAULT_POST_BODY),
-                img_url="https://upload.wikimedia.org/wikipedia/commons/f/fc/Cactus1web.jpg",
+                title=post_data["title"],
+                subtitle=post_data["subtitle"],
+                date=post_data["date"],
+                body=clean_html(post_data["body"]),
+                img_url=post_data["img_url"],
                 author=author,
             )
         )
