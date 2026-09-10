@@ -225,10 +225,13 @@ def migrate_existing_database():
     if first_user and not admin_exists:
         first_user.role = "admin"
     admin_email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+    admin_password = os.getenv("ADMIN_PASSWORD", "")
     if admin_email:
         configured_admin = db.session.scalar(db.select(User).where(User.email == admin_email))
         if configured_admin:
             configured_admin.role = "admin"
+            if admin_password:
+                configured_admin.password = generate_password_hash(admin_password)
     admin = db.session.scalar(db.select(User).where(User.role == "admin").order_by(User.id))
     if admin:
         seed_default_post(admin)
@@ -273,11 +276,16 @@ def register():
         if db.session.scalar(db.select(User).where(User.email == email)):
             flash("That email is already registered. Please log in.", "warning")
             return redirect(url_for("login"))
+        configured_admin_email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+        configured_admin_password = os.getenv("ADMIN_PASSWORD", "")
+        is_configured_admin = email == configured_admin_email
         user = User(
             email=email,
             name=form.name.data.strip(),
-            password=generate_password_hash(form.password.data),
-            role="admin" if email == os.getenv("ADMIN_EMAIL", "").strip().lower() else "user",
+            password=generate_password_hash(
+                configured_admin_password if is_configured_admin and configured_admin_password else form.password.data
+            ),
+            role="admin" if is_configured_admin else "user",
         )
         db.session.add(user)
         db.session.commit()
