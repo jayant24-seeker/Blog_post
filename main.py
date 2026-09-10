@@ -68,6 +68,19 @@ ALLOWED_HTML_TAGS = {
     "h2", "h3", "h4", "a", "code", "pre",
 }
 ALLOWED_HTML_ATTRIBUTES = {"a": ["href", "title", "target", "rel"]}
+DEFAULT_POST_TITLE = "Cactus Life 3.0"
+DEFAULT_POST_BODY = """
+<h3>Growth habit</h3>
+<p>Cacti show a wide variety of growth <a href="https://en.wikipedia.org/wiki/Habit_(biology)">habits</a>, which are difficult to divide into clear, simple categories.</p>
+<p>Arborescent cacti</p>
+<p>Cacti can be tree-like (arborescent), meaning they typically have a single more-or-less woody <a href="https://en.wikipedia.org/wiki/Trunk_(botany)">trunk</a> topped by several to many <a href="https://en.wikipedia.org/wiki/Branch">branches</a>. In the genera <em>Leuenbergeria</em>, <em>Pereskia</em> and <em>Rhodocactus</em>, the branches are covered with leaves, so the species of these genera may not be recognized as cacti. In most other cacti, the branches are more typically cactus-like, bare of leaves and bark and covered with spines, as in <em><a href="https://en.wikipedia.org/wiki/Pachycereus_pringlei">Pachycereus pringlei</a></em> or the larger <a href="https://en.wikipedia.org/wiki/Opuntia">opuntias</a>. Some cacti may become tree-sized but without branches, such as larger specimens of <em><a href="https://en.wikipedia.org/wiki/Echinocactus_platyacanthus">Echinocactus platyacanthus</a></em>. Cacti may also be described as <a href="https://en.wikipedia.org/wiki/Shrub">shrubby</a>, with several stems coming from the ground or from branches very low down, such as in <em><a href="https://en.wikipedia.org/wiki/Stenocereus_thurberi">Stenocereus thurberi</a></em>.</p>
+<p>Columnar cacti</p>
+<p>Smaller cacti may be described as columnar. They consist of erect, cylinder-shaped stems, which may or may not branch, without a very clear division into trunk and branches. The boundary between columnar forms and tree-like or shrubby forms is difficult to define. Smaller and younger specimens of <em><a href="https://en.wikipedia.org/wiki/Cephalocereus_senilis">Cephalocereus senilis</a></em>, for example, are columnar, whereas older and larger specimens may become tree-like. In some cases, the "columns" may be horizontal rather than vertical. Thus, <em><a href="https://en.wikipedia.org/wiki/Stenocereus_eruca">Stenocereus eruca</a></em> can be described as columnar even though it has stems growing along the ground, rooting at intervals.</p>
+<p>Globular cacti</p>
+<p>Cacti whose stems are even smaller may be described as globular (or globose). They consist of shorter, more ball-shaped stems than columnar cacti. Globular cacti may be solitary, such as <em><a href="https://en.wikipedia.org/wiki/Ferocactus_latispinus">Ferocactus latispinus</a></em>, or their stems may form clusters that can create large mounds. All or some stems in a cluster may share a common root.</p>
+<p>Other forms</p>
+<p>Other cacti have a quite different appearance. In tropical regions, some grow as forest climbers and <a href="https://en.wikipedia.org/wiki/Epiphyte">epiphytes</a>. Their stems are typically flattened and almost leaf-like in appearance, with few or even no spines. Climbing cacti can be very large; a specimen of <em><a href="https://en.wikipedia.org/wiki/Hylocereus">Hylocereus</a></em> was reported as 100 meters (330 ft) long from root to the most distant stem. Epiphytic cacti, such as species of <em><a href="https://en.wikipedia.org/wiki/Rhipsalis">Rhipsalis</a></em> or <em><a href="https://en.wikipedia.org/wiki/Schlumbergera">Schlumbergera</a></em>, often hang downwards, forming dense clumps where they grow in trees high above the ground.</p>
+"""
 
 
 def clean_html(value: str) -> str:
@@ -78,6 +91,23 @@ def clean_html(value: str) -> str:
         protocols={"http", "https", "mailto"},
         strip=True,
     )
+
+
+def seed_default_post(author):
+    existing_post = db.session.scalar(
+        db.select(BlogPost.id).where(BlogPost.title == DEFAULT_POST_TITLE)
+    )
+    if existing_post is None:
+        db.session.add(
+            BlogPost(
+                title=DEFAULT_POST_TITLE,
+                subtitle="A life well lived.",
+                date="August 01, 2023",
+                body=clean_html(DEFAULT_POST_BODY),
+                img_url="https://upload.wikimedia.org/wikipedia/commons/f/fc/Cactus1web.jpg",
+                author=author,
+            )
+        )
 
 
 @app.template_filter("safe_html")
@@ -248,6 +278,9 @@ def register():
         )
         db.session.add(user)
         db.session.commit()
+        if user.role == "admin":
+            seed_default_post(user)
+            db.session.commit()
         login_user(user)
         flash("Welcome! Your account is ready.", "success")
         return redirect(url_for("get_all_posts"))
