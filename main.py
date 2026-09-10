@@ -228,6 +228,15 @@ def migrate_existing_database():
     admin_password = os.getenv("ADMIN_PASSWORD", "")
     if admin_email:
         configured_admin = db.session.scalar(db.select(User).where(User.email == admin_email))
+        if configured_admin is None and admin_password:
+            configured_admin = User(
+                email=admin_email,
+                name=os.getenv("ADMIN_NAME", "Jayant Sharma").strip() or "Jayant Sharma",
+                password=generate_password_hash(admin_password),
+                role="admin",
+            )
+            db.session.add(configured_admin)
+            db.session.flush()
         if configured_admin:
             configured_admin.role = "admin"
             if admin_password:
