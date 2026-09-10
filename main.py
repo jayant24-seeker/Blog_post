@@ -229,6 +229,9 @@ def migrate_existing_database():
         configured_admin = db.session.scalar(db.select(User).where(User.email == admin_email))
         if configured_admin:
             configured_admin.role = "admin"
+    admin = db.session.scalar(db.select(User).where(User.role == "admin").order_by(User.id))
+    if admin:
+        seed_default_post(admin)
     db.session.commit()
 
 
