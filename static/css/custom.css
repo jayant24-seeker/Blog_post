@@ -64,7 +64,7 @@ body {
 }
 
 /* Forms */
-form {
+main form {
   animation: fadeSlideUp 0.6s ease-out;
   background: white;
   padding: 2.5rem;
